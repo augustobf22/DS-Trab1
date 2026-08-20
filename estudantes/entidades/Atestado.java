@@ -11,4 +11,6 @@ public class Atestado extends Registro{
         this.descricao = descricao;
         this.categoria = categoria;
     }
+
+    public String getCategoria() { return this.categoria; }
 }

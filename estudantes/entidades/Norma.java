@@ -12,4 +12,6 @@ public class Norma extends DocumentoAdministrativo{
         this.texto = texto;
         this.valido = valido;
     }
+
+    public boolean isValido() { return this.valido; }
 }

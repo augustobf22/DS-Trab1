@@ -9,4 +9,6 @@ public class Oficio extends Deliberacao{
         super(criador, codigoCurso, paginas, texto);
         this.destinatario = destinatario;
     }
+
+    public String getDestinatario() { return this.destinatario; }
 }

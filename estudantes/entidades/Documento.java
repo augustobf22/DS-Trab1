@@ -19,4 +19,8 @@ public abstract class Documento {
         this.codigoCurso = codigoCurso;
         this.paginas = paginas;
     }
+
+    public int getPaginas() { return this.paginas; }
+
+    public CodigoCurso getCodigoCurso() { return this.codigoCurso; }
 }

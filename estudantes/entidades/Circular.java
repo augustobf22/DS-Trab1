@@ -9,4 +9,6 @@ public class Circular extends Deliberacao{
         super(criador, codigoCurso, paginas, texto);
         this.destinatarios = destinatarios;
     }
+
+    public String[] getDestinatarios() { return this.destinatarios; }
 }
