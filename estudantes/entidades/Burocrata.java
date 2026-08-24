@@ -56,7 +56,10 @@ public class Burocrata {
      * @see professor.entidades.Universidade#devolverDocumentoParaMonteDoCurso(estudantes.entidades.Documento, professor.entidades.CodigoCurso) 
      */
     public void trabalhar(){
-        
+        //buscar processos, garantindo que são do tipo processo mesmo
+        //buscar documentos
+        //antes de adicionar um documento no processo, conferir seu numero de paginas com o documento novo adicionado
+
     }
     
     /**

@@ -167,7 +167,7 @@ public class Secretaria {
         
         documentosDespachados += processo.contarDocumentos();
         
-        if(processoComProblemas){
+        if(!processoComProblemas){
             processosDespachadosCorretamente.push(processo);
         }else{
             processosDespachadosComProblemas.push(processo);

@@ -22,5 +22,11 @@ public abstract class Documento {
 
     public int getPaginas() { return this.paginas; }
 
+    public boolean isPosGrad() {
+        String cod = this.codigoCurso.toString();
+
+        return cod.contains("POS");
+    }
+
     public CodigoCurso getCodigoCurso() { return this.codigoCurso; }
 }
