@@ -11,12 +11,8 @@ import java.util.stream.Stream;
 
 
 //circulares e oficios precisam ter destinatario em comum
-public class Regra5 extends Regra{
-    public Regra5(Processo processo, Documento documento){
-        super(processo, documento);
-    }
-
-    public boolean validate(){
+public class Regra5 implements Regra{
+    public boolean validate(Processo processo, Documento documento){
         //validação so se aplica para docs do tipo Deliberação (circulares e oficios)
         if( !(documento instanceof Deliberacao) ) return true;
 

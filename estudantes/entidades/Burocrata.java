@@ -1,6 +1,10 @@
 package estudantes.entidades;
 
 import professor.entidades.*;
+import estudantes.entidades.*;
+import estudantes.regras.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Classe que traz a lógica do algoritmo de organização e despacho de processos.
@@ -27,7 +31,17 @@ public class Burocrata {
         this.mesa = m;
         this.universidade = u;
     }
-    
+
+    //instanciando as regras e criando metodo de validação universal
+    Regra[] regras = new Regra[]{new Regra1(), new Regra2(), new Regra3(), new Regra4(), new Regra5(), new Regra6(), new Regra7(), new RegraPaginas()};
+    private boolean validarRegras(Processo processo, Documento documento, Regra[] regras) {
+        for (Regra regra : regras) {
+            if (!regra.validate(processo, documento)) {
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * Executa a lógica de criação e despacho dos processos.
      * <br><br>
@@ -55,11 +69,87 @@ public class Burocrata {
      * @see professor.entidades.Universidade#removerDocumentoDoMonteDoCurso(estudantes.entidades.Documento, professor.entidades.CodigoCurso)
      * @see professor.entidades.Universidade#devolverDocumentoParaMonteDoCurso(estudantes.entidades.Documento, professor.entidades.CodigoCurso) 
      */
-    public void trabalhar(){
+    public void trabalhar() {
         //buscar processos, garantindo que são do tipo processo mesmo
         //buscar documentos
-        //antes de adicionar um documento no processo, conferir seu numero de paginas com o documento novo adicionado
+        //antes de adicionar um documento ao processo, realizar validações
+        //logica inicial: pega um documento de um monte e um processo aberto; se passar em todas as validações, adiciona doc ao processo
+        //ao final, devolver documentos não usados
 
+        //logica de checar por novos processos
+        //logica de checar por novos documentos nos montes
+
+        Processo[] processosAtuais = mesa.getProcessos();
+        Map<CodigoCurso, Documento[]> montes = new LinkedHashMap<>();
+
+        /*
+        //para doc dentro de um monte: tenta botar no primeiro processo; nao deu, tenta no proximo. se nao conseguiu em nenhum, devolve ao monte? como saber que o processo esta cheio?
+        montes.forEach((curso, monte) -> {
+            for (Documento doc : monte) {
+                for (Processo processoAtual : processosAtuais) {
+                    if (validarRegras(processoAtual, doc, regras)) {
+                        processoAtual.adicionarDocumento(doc);
+                        universidade.removerDocumentoDoMonteDoCurso(doc, curso);
+                        break; //sai do processo atual, vai pro proximo doc
+                    }
+                }
+            }
+        });
+        */
+
+        
+        //outro metodo: abre um processo e bota o maximo de docs nele; um doc não deu, vai pro proximo; nao deu nesse monte, vai pro proximo ate acabarem os montes
+        //criar lista com todos os docs? ao inves de forEach nos montes
+        //como saber se processo esta cheio? deu mais uma volta e não adicionou mais documentos
+        for (Processo processoAtual : processosAtuais) {
+            //verfica se processo ja foi criado/não é null
+            if (processoAtual == null) {
+                continue; // vai pro proximo
+            }
+
+            //atualiza monte a cada processo
+            for (CodigoCurso cod : CodigoCurso.values()) {
+                Documento[] monte = universidade.pegarCopiaDoMonteDoCurso(cod);
+                montes.put(cod, monte);
+            }
+
+            //criar uma lista com todos os docs e ir removendo eles
+            //tentar inserir docs no processo até que nenhum seja inserido apos uma execução do loop
+
+            //tenta alocar docs no processo
+            montes.forEach((curso, monte) -> {
+                for (Documento doc : monte) {
+                    if (validarRegras(processoAtual, doc, regras)) {
+                        processoAtual.adicionarDocumento(doc);
+                        universidade.removerDocumentoDoMonteDoCurso(doc, curso);
+                    }
+                }
+            });
+
+            //testes
+            if(processoAtual.contarDocumentos() != 0){
+                /*// depois de adicionar os documentos
+                System.out.println("\n=== Processo sendo despachado ===");
+
+                Documento[] documentos = processoAtual.pegarCopiaDoProcesso();
+                int totalPaginas = 0;
+
+                for (Documento documento : documentos) {
+                    totalPaginas += documento.getPaginas();
+
+                    System.out.println(
+                           "Tipo: " + documento.getClass().getSimpleName()
+                                    + " | Curso: " + documento.getCodigoCurso()
+                                    + " | Páginas: " + documento.getPaginas()
+                    );
+                }
+
+                System.out.println("Total de documentos: " + documentos.length);
+                System.out.println("Total de páginas: " + totalPaginas); */
+
+                universidade.despachar(processoAtual); }
+
+        }
     }
     
     /**

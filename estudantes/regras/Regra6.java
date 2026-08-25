@@ -7,23 +7,30 @@ import estudantes.entidades.Documento;
 import professor.entidades.Processo;
 
 //Diplomas só podem ir em processo contendo outros diplomas, certificados ou atas
-public class Regra6 extends Regra {
-    public Regra6(Processo processo, Documento documento){
-        super(processo, documento);
-    }
-
-    public boolean validate(){
-        //validação so se aplica para docs do tipo Diploma
-        if( !(documento instanceof Diploma) ) return true;
-
-        //percorrer processo, se encontrar doc de tipo diferente de Diploma, Certificado e Ata devolver falso
+public class Regra6 implements Regra {
+    public boolean validate(Processo processo, Documento documento){
         Documento[] docsProcesso = processo.pegarCopiaDoProcesso();
+
+        //validar se processo ja contem diploma; nesse caso, aceita apenas certficado ou ata
+        boolean contemDiploma = false;
+        boolean contemOutros = false;
         for(Documento doc : docsProcesso){
-            if( !(doc instanceof Certificado || doc instanceof Ata)){
-                return false;
+            if((doc instanceof Diploma)){
+                contemDiploma = true;
+                break;
+            } else if (!(doc instanceof Certificado || doc instanceof Ata)){
+                contemOutros = true;
+                break;
             }
         }
 
-        return true;
+        //se for diploma, retorna true apenas se não tiver outros
+        if(documento instanceof Diploma){
+            return !contemOutros;
+        } else if(documento instanceof Certificado || documento instanceof Ata){ //nessa regra, certificados e atas sempre podem entrar no processo
+            return true;
+        } else { //se não for diploma, retorna true apenas se nao tiver diplomas no processo
+            return !contemDiploma;
+        }
     }
 }

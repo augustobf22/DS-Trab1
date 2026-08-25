@@ -6,12 +6,8 @@ import professor.entidades.Processo;
 
 //portarias e editais VALIDOS não podem ter mais de 100 paginas
 //se devolver falso nessa validação, ir para o proximo processo vazio e despachar so com esse documento
-public class Regra4 extends Regra{
-    public Regra4(Processo processo, Documento documento){
-        super(processo, documento);
-    }
-
-    public boolean validate(){
+public class Regra4 implements Regra{
+    public boolean validate(Processo processo, Documento documento){
         //se doc não for portaria ou edital(= Norma), não precisa passar pela validação
         if ( !(documento instanceof Norma) ) {
             return true;

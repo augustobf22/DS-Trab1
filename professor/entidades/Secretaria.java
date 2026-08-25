@@ -25,6 +25,9 @@ public class Secretaria {
     protected void despachar(Processo processo, Burocrata burocrata){
         //perder documentos se exceder capacidade do processo
         if(processo.contarPaginas() > 250){
+            System.out.println("[ERRO] Processo excedeu 250 páginas: "
+                    + processo.contarPaginas() + " páginas, "
+                    + processo.contarDocumentos() + " documentos");
             documentosPerdidos += processo.contarDocumentos();
             burocrata.estressarMuito();
             return;
@@ -43,6 +46,7 @@ public class Secretaria {
             }
         }
         if(graduacao && posgraduacao){
+            System.out.println("[ERRO] Processo mistura documentos de graduação e pós-graduação");
             burocrata.estressar();
             processoComProblemas = true;
         }
@@ -58,6 +62,7 @@ public class Secretaria {
             }
         }
         if(administrativos && academicos){
+            System.out.println("[ERRO] Processo mistura documentos administrativos e acadêmicos");
             burocrata.estressar();
             processoComProblemas = true;
         }
@@ -73,6 +78,7 @@ public class Secretaria {
             }
         }
         if(apenasAtas){
+            System.out.println("[ERRO] Processo contém somente atas");
             burocrata.estressar();
             processoComProblemas = true;
         }
@@ -88,6 +94,8 @@ public class Secretaria {
             }
         }
         if(documentoSubstancialValido && copiaDoProcesso.length > 1){
+            System.out.println("[ERRO] Processo contém edital ou portaria válida "
+                    + "com 100 páginas ou mais junto com outros documentos");
             burocrata.estressar();
             processoComProblemas = true;
         }
@@ -127,6 +135,7 @@ public class Secretaria {
                 }
             }
             if(existemCircularesEOficiosSemDestinatarioComum){
+                System.out.println("[ERRO] Ofícios e circulares não possuem destinatário em comum");
                 burocrata.estressar();
                 processoComProblemas = true;
             }
@@ -143,6 +152,7 @@ public class Secretaria {
             }
         }
         if(diplomas && documentosNaoDiplomasCertificadosAtas){
+            System.out.println("[ERRO] Diploma foi misturado com documento incompatível");
             burocrata.estressar();
             processoComProblemas = true;
         }
@@ -161,6 +171,7 @@ public class Secretaria {
             }
         }
         if(atestadosComCategoriasMisturadas){
+            System.out.println("[ERRO] Processo mistura atestados de categorias diferentes");
             burocrata.estressar();
             processoComProblemas = true;
         }

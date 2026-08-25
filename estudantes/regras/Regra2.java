@@ -6,12 +6,8 @@ import estudantes.entidades.DocumentoAdministrativo;
 import professor.entidades.Processo;
 
 //processo não pode misturar docs admin e academicos, ata vai com qualquer coisa
-public class Regra2 extends Regra{
-    public Regra2(Processo processo, Documento documento){
-        super(processo, documento);
-    }
-
-    public boolean validate(){
+public class Regra2 implements Regra{
+    public boolean validate(Processo processo, Documento documento){
         //atas vão com qualquer coisa
         if(documento instanceof Ata) {return true;}
 

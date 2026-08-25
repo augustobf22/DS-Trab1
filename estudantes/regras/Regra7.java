@@ -5,12 +5,8 @@ import estudantes.entidades.Documento;
 import professor.entidades.Processo;
 
 //atestados só podem estar com atestados da mesma categoria
-public class Regra7 extends Regra {
-    public Regra7(Processo processo, Documento documento){
-        super(processo, documento);
-    }
-
-    public boolean validate(){
+public class Regra7 implements Regra {
+    public boolean validate(Processo processo, Documento documento){
         //se doc não for do tipo Atestado, validação não se aplica
         if(!(documento instanceof Atestado)) {return true;}
 

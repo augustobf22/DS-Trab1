@@ -4,15 +4,16 @@ import estudantes.entidades.Documento;
 import professor.entidades.Processo;
 
 //processo não pode ter docs de grad e pos simultaneamente
-public class Regra1 extends Regra{
-    public Regra1(Processo processo, Documento documento){
-        super(processo, documento);
-    }
-
-    public boolean validate(){
-        boolean processoContemDocPos = false;
+public class Regra1 implements Regra{
+    public boolean validate(Processo processo, Documento documento){
         Documento[] docsProcesso = processo.pegarCopiaDoProcesso();
 
+        //verificar se processo está vazio
+        if (docsProcesso.length == 0) {
+            return true;
+        }
+
+        boolean processoContemDocPos = false;
         for(Documento doc : docsProcesso){
             if(doc.isPosGrad()){
                 processoContemDocPos = true;
