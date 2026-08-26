@@ -15,7 +15,7 @@ public class Regra3 implements Regra{
         boolean contemOutro = false; //se continuar false, não pode ser despachado
         Documento[] docsProcesso = processo.pegarCopiaDoProcesso();
 
-        //se processo esta vazio, pode adicionar
+        //se processo esta vazio, pode adicionar -> esta causando erro de apenas atas
         //if(docsProcesso.length == 0) return true;
 
         //verificar se existem docs de outros tipos no processo

@@ -1,10 +1,9 @@
 package estudantes.entidades;
 
 import professor.entidades.*;
-import estudantes.entidades.*;
 import estudantes.regras.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
+
+import java.util.*;
 
 /**
  * Classe que traz a lógica do algoritmo de organização e despacho de processos.
@@ -20,7 +19,11 @@ public class Burocrata {
     private int estresse = 0;
     private Mesa mesa;
     private Universidade universidade;
-    
+
+    //variaveis de controle, precisam se manter entre os ciclos de trabalhar()
+    private int NUMERO_PASSAGENS = 10; //quantas passagens o processo vai fazer pela lista de docs sem adicionar nenhum doc antes de ser despachado
+    private int[] passagensSemAdicionarDoc = new int[5]; //guarda, para cada processo, quantas passagens ele já deu sem adicionar um doc. quando chegar em NUMERO_PASSAGENS, processo é despachado
+
     /**
      * Construtor de Burocrata.
      * 
@@ -70,34 +73,70 @@ public class Burocrata {
      * @see professor.entidades.Universidade#devolverDocumentoParaMonteDoCurso(estudantes.entidades.Documento, professor.entidades.CodigoCurso) 
      */
     public void trabalhar() {
-        //buscar processos, garantindo que são do tipo processo mesmo
-        //buscar documentos
-        //antes de adicionar um documento ao processo, realizar validações
-        //logica inicial: pega um documento de um monte e um processo aberto; se passar em todas as validações, adiciona doc ao processo
-        //ao final, devolver documentos não usados
-
-        //logica de checar por novos processos
-        //logica de checar por novos documentos nos montes
+        //criar lista com todos os docs
+        //percorrer a lista alocando cada documento em um dos 5 processos, de acordo com as regras de alocação
+        //depois de percorrer todos os documentos, verificar se existem novos documentos e continuar tentando fazer a alocação
+        //quando um processo não alocou nenhum documento adicional após um numero x de passagens (testar diferentes valores aqui), ele é despachado
 
         Processo[] processosAtuais = mesa.getProcessos();
-        Map<CodigoCurso, Documento[]> montes = new LinkedHashMap<>();
 
-        /*
-        //para doc dentro de um monte: tenta botar no primeiro processo; nao deu, tenta no proximo. se nao conseguiu em nenhum, devolve ao monte? como saber que o processo esta cheio?
-        montes.forEach((curso, monte) -> {
-            for (Documento doc : monte) {
-                for (Processo processoAtual : processosAtuais) {
-                    if (validarRegras(processoAtual, doc, regras)) {
-                        processoAtual.adicionarDocumento(doc);
-                        universidade.removerDocumentoDoMonteDoCurso(doc, curso);
-                        break; //sai do processo atual, vai pro proximo doc
-                    }
+        //buscar docs nos montes dos cursos e montar lista com todos os docs
+        List<Documento> listaTodosDocumentos = new ArrayList<>(); //arraylist não precisa especificar tamanho inicial, facilita remoção
+        for(CodigoCurso cod : CodigoCurso.values()) {
+            Documento[] monte = universidade.pegarCopiaDoMonteDoCurso(cod);
+            listaTodosDocumentos.addAll(Arrays.asList(monte));
+        }
+
+        //cada processo tem um indicador booleano com indice igual ao seu
+        boolean[] processoAdicionouDoc = new boolean[processosAtuais.length];
+
+        //alocação dos docs nos processos
+        for(int indiceDoc = 0; indiceDoc < listaTodosDocumentos.size(); indiceDoc++){ //usando for tradicional pois preciso de controle de indices
+            Documento doc = listaTodosDocumentos.get(indiceDoc);
+
+            for (int indiceProcesso = 0; indiceProcesso < processosAtuais.length; indiceProcesso++) {
+                Processo processoAtual = processosAtuais[indiceProcesso];
+
+                if (processoAtual != null && validarRegras(processoAtual, doc, regras)) { //valida as regras e verifica se processo não é nulo, evitando NullPointerException
+                    processoAtual.adicionarDocumento(doc);
+                    universidade.removerDocumentoDoMonteDoCurso(doc, doc.getCodigoCurso());
+
+                    listaTodosDocumentos.remove(doc);
+                    indiceDoc--; //sem essa linha, pularia um indice
+                    processoAdicionouDoc[indiceProcesso] = true;
+                    break; //vai pro proximo doc
                 }
             }
-        });
-        */
+        }
 
-        
+        //controle de passagens, decidir se processo vai ser despachado ou vai tentar adicionar mais docs
+        for (int indiceProcesso = 0; indiceProcesso < processosAtuais.length; indiceProcesso++) {
+            Processo processoAtual = processosAtuais[indiceProcesso];
+
+            //se processo é nulo, resetar contagem e ir pro proximo processo
+            if(processoAtual == null){
+                passagensSemAdicionarDoc[indiceProcesso] = 0;
+                continue;
+            }
+
+            //se recebeu docs nessa passagem, atualizar variavel de controle
+            //se processo continua vazio, ignorar essa passagem (evita despachar processos vazios)
+            //se não recebeu, aumentar variavel de controle e fazer verificação se chegou ao limite
+            if(processoAdicionouDoc[indiceProcesso] || processoAtual.contarDocumentos() == 0){
+                passagensSemAdicionarDoc[indiceProcesso] = 0;
+            } else {
+                    passagensSemAdicionarDoc[indiceProcesso]++;
+
+                    //quando chegar no limite de passagens sem docs adicionados, despachar processo e atualizar variavel de controle
+                    if(passagensSemAdicionarDoc[indiceProcesso] >= NUMERO_PASSAGENS){
+                        universidade.despachar(processoAtual);
+                        passagensSemAdicionarDoc[indiceProcesso] = 0;
+                    }
+            }
+        }
+    }
+
+/*
         //outro metodo: abre um processo e bota o maximo de docs nele; um doc não deu, vai pro proximo; nao deu nesse monte, vai pro proximo ate acabarem os montes
         //criar lista com todos os docs? ao inves de forEach nos montes
         //como saber se processo esta cheio? deu mais uma volta e não adicionou mais documentos
@@ -128,7 +167,7 @@ public class Burocrata {
 
             //testes
             if(processoAtual.contarDocumentos() != 0){
-                /*// depois de adicionar os documentos
+                // depois de adicionar os documentos
                 System.out.println("\n=== Processo sendo despachado ===");
 
                 Documento[] documentos = processoAtual.pegarCopiaDoProcesso();
@@ -145,12 +184,15 @@ public class Burocrata {
                 }
 
                 System.out.println("Total de documentos: " + documentos.length);
-                System.out.println("Total de páginas: " + totalPaginas); */
+                System.out.println("Total de páginas: " + totalPaginas);
 
                 universidade.despachar(processoAtual); }
 
         }
-    }
+
+        //tentar fazer uma lista com todos os docs e percorrer ate que nenhum doc seja adicionado no processo
+
+ */
     
     /**
      * Retorna o valor atual de estresse do burocrata.
