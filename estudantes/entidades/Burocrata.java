@@ -2,7 +2,6 @@ package estudantes.entidades;
 
 import professor.entidades.*;
 import estudantes.regras.*;
-
 import java.util.*;
 
 /**
@@ -21,8 +20,8 @@ public class Burocrata {
     private Universidade universidade;
 
     //variaveis de controle, precisam se manter entre os ciclos de trabalhar()
-    private int NUMERO_PASSAGENS = 10; //quantas passagens o processo vai fazer pela lista de docs sem adicionar nenhum doc antes de ser despachado
-    private int[] passagensSemAdicionarDoc = new int[5]; //guarda, para cada processo, quantas passagens ele já deu sem adicionar um doc. quando chegar em NUMERO_PASSAGENS, processo é despachado
+    private static final int NUMERO_PASSAGENS = 10; //quantas passagens o processo vai fazer pela lista de docs sem adicionar nenhum doc antes de ser despachado
+    private final int[] passagensSemAdicionarDoc = new int[5]; //guarda, para cada processo, quantas passagens ele já deu sem adicionar um doc. quando chegar em NUMERO_PASSAGENS, processo é despachado
 
     /**
      * Construtor de Burocrata.
