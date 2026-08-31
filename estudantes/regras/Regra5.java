@@ -6,8 +6,7 @@ import estudantes.entidades.Documento;
 import estudantes.entidades.Oficio;
 import professor.entidades.Processo;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.*;
 
 
 //circulares e oficios precisam ter destinatario em comum
@@ -16,40 +15,67 @@ public class Regra5 implements Regra{
         //validação so se aplica para docs do tipo Deliberação (circulares e oficios)
         if( !(documento instanceof Deliberacao) ) return true;
 
-        //filtrar o processo por documentos do tipo Deliberação e construir lista de destinatarios
+        //verifica se existe interseção entre os destinatarios dos docs no processo
+        Set<String> intersecao = buscaIntersecao(processo);
+
+        //se não existe nenhum destinatario em comum aqui, ja retorna falso
+        if (intersecao == null || intersecao.isEmpty()) {
+            return false;
+        }
+
+        //buscar os destinatarios do documento
+        Set<String> destinatariosDoc = buscarDestinatarios(documento);
+
+        //proteção contra docs criados com erro/null no destinatarios
+        if(destinatariosDoc.isEmpty()) return true;
+
+        //confere se existem elementos em comum entre os destinatarios do processo (intersecao) e os destinatarios do documento
+        intersecao.retainAll(destinatariosDoc);
+
+        //devolve verdadeiro caso existam elementos em comum (intersecao não é vazia)
+        return !intersecao.isEmpty();
+    }
+
+    //usando set/hashset para armazenar pois tempo de busca é menor
+    //metodo auxiliar para buscar destinatarios (oficio sempre tem um, circular mais de um)
+    private Set<String> buscarDestinatarios(Documento doc){
+        if (doc instanceof Oficio oficio) {
+            return Collections.singleton(oficio.getDestinatario());
+        } else if (doc instanceof Circular) {
+            return new HashSet<>(Arrays.asList(((Circular) doc).getDestinatarios()));
+        }
+
+        //se não entrou em nenhum if, devolver conjunto vazio
+        return Collections.emptySet();
+    }
+
+    //recebe um processo e devolve set com destinatarios em comum entre os docs
+    private Set<String> buscaIntersecao(Processo processo){
+        Set<String> intersecao = null;
+
         Documento[] docsProcesso = processo.pegarCopiaDoProcesso();
-        String[] listaDestinatarios = Arrays.stream(docsProcesso)
-                .filter(doc -> doc instanceof Deliberacao) //deixar apenas doc do tipo certo
-                .flatMap(doc -> { //itera sobre cada doc e busca destinatario ou destinatarios, dependendo do tipo
-                    //se for oficio, buscar destinatario
-                    if(doc instanceof Oficio oficio) {
-                        return Stream.of(oficio.getDestinatario());}
-                    //se for circular, buscar destinatarios
-                    else {
-                        Circular circular = (Circular) doc;
-                        return Arrays.stream(circular.getDestinatarios());
-                    }
-                })
-                .toArray(String[]::new); //array criado do tipo Documento[]
-
-        //se for vazia, não precisa fazer match dos destinatarios -> retorna true
-        if(listaDestinatarios.length == 0) return true;
-
-        //verificar se destinatario do doc atual esta na lista
-        if(documento instanceof Oficio){
-            String destinatarioAtual = ((Oficio) documento).getDestinatario();
-
-            return Arrays.asList(listaDestinatarios).contains(destinatarioAtual); //retorna verdadeiro se o destinatario atual esta na lista
-        } else {
-            String[] destinatariosAtuais = ((Circular) documento).getDestinatarios();
-
-            for(String destinatarioAtual : destinatariosAtuais){
-                if(Arrays.asList(listaDestinatarios).contains(destinatarioAtual)){
-                    return true;
-                }
+        for(Documento doc : docsProcesso){
+            if (!(doc instanceof Deliberacao)) {
+                continue;
             }
 
-            return false; //se não retornou true dentro do for, lista não contem o destinatario atual
+            Set<String> destinatarios = buscarDestinatarios(doc);
+            if (destinatarios.isEmpty()) {
+                continue;
+            }
+
+            if (intersecao == null) { //na primeira passagem, inicia o conjunto
+                intersecao = new HashSet<>(destinatarios);
+            } else {
+                intersecao.retainAll(destinatarios); //retainAll: metodo que compara os valores do conjunto e mantém apenas os que são iguais => interseção
+            }
+
+            //se intersecao estiver vazia dentro do for, ja pode quebrar o laco e dar retorno
+            if (intersecao.isEmpty()) {
+                return intersecao;
+            }
         }
+
+        return intersecao;
     }
 }

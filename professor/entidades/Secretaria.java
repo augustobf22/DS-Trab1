@@ -22,9 +22,15 @@ public class Secretaria {
         processosDespachadosComProblemas = new LinkedList<>();
     }
     
+    private void registrarErro(String tipo, String motivo, Burocrata burocrata){
+        System.out.println("[ERRO] Tipo: " + tipo + " | Motivo: " + motivo);
+        burocrata.estressar();
+    }
+
     protected void despachar(Processo processo, Burocrata burocrata){
         //perder documentos se exceder capacidade do processo
         if(processo.contarPaginas() > 250){
+            System.out.println("[ERRO] Tipo: CAPACIDADE_EXCEDIDA | Motivo: processo tem " + processo.contarPaginas() + " páginas, excedendo o limite de 250.");
             documentosPerdidos += processo.contarDocumentos();
             burocrata.estressarMuito();
             return;
@@ -43,7 +49,7 @@ public class Secretaria {
             }
         }
         if(graduacao && posgraduacao){
-            burocrata.estressar();
+            registrarErro("GRADUACAO_X_POS_GRADUACAO", "processo mistura documentos de graduação e pós-graduação.", burocrata);
             processoComProblemas = true;
         }
         
@@ -58,7 +64,7 @@ public class Secretaria {
             }
         }
         if(administrativos && academicos){
-            burocrata.estressar();
+            registrarErro("ADMINISTRATIVO_X_ACADEMICO", "processo mistura documentos administrativos e acadêmicos.", burocrata);
             processoComProblemas = true;
         }
         
@@ -73,7 +79,7 @@ public class Secretaria {
             }
         }
         if(apenasAtas){
-            burocrata.estressar();
+            registrarErro("SO_COM_ATAS", "processo contém apenas atas, o que não é permitido.", burocrata);
             processoComProblemas = true;
         }
         
@@ -88,7 +94,7 @@ public class Secretaria {
             }
         }
         if(documentoSubstancialValido && copiaDoProcesso.length > 1){
-            burocrata.estressar();
+            registrarErro("PORTARIA_EDITAL_SUBSTANCIAL", "norma válida com 100+ páginas foi enviada junto com outros documentos.", burocrata);
             processoComProblemas = true;
         }
         
@@ -127,6 +133,44 @@ public class Secretaria {
                 }
             }
             if(existemCircularesEOficiosSemDestinatarioComum){
+                HashMap<String, Integer> copie = new HashMap<>(destinatarios);
+                String destinatariosProcesso = copie.keySet().toString();
+                String destinatariosDocumento = "";
+                for(Documento doc : copiaDoProcesso){
+                    if(doc instanceof Oficio){
+                        destinatariosDocumento += ((Oficio) doc).getDestinatario() + ", ";
+                    }
+                    if(doc instanceof Circular){
+                        for(String destinatario : ((Circular) doc).getDestinatarios()){
+                            destinatariosDocumento += destinatario + ", ";
+                        }
+                    }
+                }
+                if(destinatariosDocumento.endsWith(", ")){
+                    destinatariosDocumento = destinatariosDocumento.substring(0, destinatariosDocumento.length() - 2);
+                }
+
+                System.out.println("[DEBUG] DESTINATARIOS_DIVERGENTES");
+                System.out.println("[DEBUG] contagemDeOficiosECirculares = " + contagemDeOficiosECirculares);
+                System.out.println("[DEBUG] destinatarios.values() = " + copie);
+                System.out.println("[DEBUG] critério atual: for (int ocorrencias : destinatarios.values()) if (ocorrencias >= contagemDeOficiosECirculares) ...");
+                for(String destinatario : copie.keySet()){
+                    int ocorrencias = copie.get(destinatario);
+                    System.out.println("[DEBUG] destinatario='" + destinatario + "' => ocorrencias=" + ocorrencias + " | comparacao=" + ocorrencias + " >= " + contagemDeOficiosECirculares + " => " + (ocorrencias >= contagemDeOficiosECirculares));
+                }
+                System.out.println("[DEBUG] destinatarios no processo = " + destinatariosProcesso);
+                System.out.println("[DEBUG] destinatarios no documento = [" + destinatariosDocumento + "]");
+                System.out.println("[DEBUG] documentos no processo = ");
+                for(Documento doc : copiaDoProcesso){
+                    if(doc instanceof Oficio){
+                        System.out.println("  - Oficio(destinatario=" + ((Oficio) doc).getDestinatario() + ")");
+                    } else if(doc instanceof Circular){
+                        System.out.println("  - Circular(destinatarios=" + java.util.Arrays.toString(((Circular) doc).getDestinatarios()) + ")");
+                    } else {
+                        System.out.println("  - " + doc.getClass().getSimpleName());
+                    }
+                }
+                System.out.println("[ERRO] Tipo: DESTINATARIOS_DIVERGENTES | Motivo: circulares e ofícios não compartilham um destinatário comum. | contagemDeOficiosECirculares=" + contagemDeOficiosECirculares + " | ocorrenciasPorDestinatario=" + copie + " | Destinatários no processo: " + destinatariosProcesso + " | Destinatários no documento: [" + destinatariosDocumento + "]");
                 burocrata.estressar();
                 processoComProblemas = true;
             }
@@ -143,7 +187,7 @@ public class Secretaria {
             }
         }
         if(diplomas && documentosNaoDiplomasCertificadosAtas){
-            burocrata.estressar();
+            registrarErro("DIPLOMA_MISTURADO", "processo contém diploma junto com documentos que não são diploma, certificado ou ata.", burocrata);
             processoComProblemas = true;
         }
         
@@ -161,7 +205,7 @@ public class Secretaria {
             }
         }
         if(atestadosComCategoriasMisturadas){
-            burocrata.estressar();
+            registrarErro("ATESTADOS_CATEGORIAS_MISTURADAS", "atestados de categorias diferentes estão no mesmo processo.", burocrata);
             processoComProblemas = true;
         }
         
@@ -169,8 +213,10 @@ public class Secretaria {
         
         if(!processoComProblemas){
             processosDespachadosCorretamente.push(processo);
+            System.out.println("[OK] Processo despachado corretamente. Documentos: " + processo.contarDocumentos() + ", páginas: " + processo.contarPaginas());
         }else{
             processosDespachadosComProblemas.push(processo);
+            System.out.println("[AVISO] Processo despachado com problemas. Documentos: " + processo.contarDocumentos() + ", páginas: " + processo.contarPaginas());
         }
     }
     
